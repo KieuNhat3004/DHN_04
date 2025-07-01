@@ -360,10 +360,6 @@
   border-radius: 5px; /* Bo góc viền để tạo cảm giác mềm mại */
 }
 
-[data-tab-content="cauhinh"] .info-table th:hover {
-  background-color: #45a049; /* Thay đổi màu nền khi hover để tăng sự tương tác */
-}
-
 
 /* Thêm hiệu ứng chớp nháy cho dòng cảnh báo */
 @keyframes blink {
@@ -508,7 +504,7 @@
     <button id="loadBtn">🔄 Load cấu hình</button>
   </div>
 
-  <div class="input-group" id="configInputs">
+  <div class="input-group">
     <!-- Tiêu đề cột Nhiệt độ và Thời gian -->
     <table class="info-table">
       <thead>
@@ -564,6 +560,17 @@
           <td><input type="number" id="T8" placeholder="Nhiệt độ" min="0" max="1300" step="1" /></td>
           <td><input type="number" id="D8" placeholder="Thời gian" min="0" max="1300" step="1" /></td>
         </tr>
+
+        <tr>
+          <td>Bước 9</td>
+          <td><input type="number" id="T9" placeholder="Nhiệt độ" min="0" max="1300" step="1" /></td>
+          <td><input type="number" id="D9" placeholder="Thời gian" min="0" max="1300" step="1" /></td>
+        </tr>
+        <tr>
+          <td>Bước 10</td>
+          <td><input type="number" id="T10" placeholder="Nhiệt độ" min="0" max="1300" step="1" /></td>
+          <td><input type="number" id="D10" placeholder="Thời gian" min="0" max="1300" step="1" /></td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -586,12 +593,12 @@
   <script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.3/src/index.js"></script>
   <script>
     let fileLabels = []; // chỉ khai báo 1 lần ở đầu
-    
+    let isConfigLoaded = false;
     // const fields = ["A", "B", "C", "D", "E"];
 
         const fields = [
      "T0", "T1", "D1", "T2", "D2", "T3", "D3", "T4", "D4",
-      "T5", "D5", "T6", "D6", "T7", "D7", "T8", "D8"
+      "T5", "D5", "T6", "D6", "T7", "D7", "T8", "D8", "T9", "D9", "T10", "D10"
     ];
     const inputs = fields.map(id => document.getElementById(id));
     const fileSelect = document.getElementById("fileSelect");
@@ -626,8 +633,25 @@
         document.querySelectorAll("[data-tab-content]").forEach(div => {
           div.style.display = div.getAttribute("data-tab-content") === tab ? "block" : "none";
         });
+
+        // Khi vào tab cấu hình, chỉ tải dữ liệu một lần
+        if (tab === "cauhinh" && !isConfigLoaded) {
+          loadConfigData(); // Tải dữ liệu từ file cấu hình
+          isConfigLoaded = true;  // Đánh dấu là đã tải cấu hình
+        }
+
+         // Khi vào tab "Điều khiển", đặt lại isConfigLoaded thành false
+        if (tab === "dieukhien") {
+          isConfigLoaded = false; // Đặt lại isConfigLoaded để dữ liệu có thể tải lại khi vào "Cấu hình"
+        }
       });
     });
+
+    // Hàm tải cấu hình khi vào tab "Cấu hình"
+    function loadConfigData() {
+      const configValue = [configValueFile1, configValueFile2, configValueFile3, configValueFile4, configValueFile5][parseInt(fileSelect.value)];
+      updateInputsFromConfig(configValue);  // Cập nhật dữ liệu vào ô input
+    }
 
     window.addEventListener("DOMContentLoaded", () => {
       // Lấy chỉ số và tên file từ localStorage
@@ -757,13 +781,6 @@
           }
         }
 
-        // const alertBox = document.getElementById("alertText");
-        // let alertText = "Không có cảnh báo";
-        // if (alert1 === "1") alertText = "Mất kết nối đồng hồ";
-        // else if (alert1 === "2") alertText = "Lỗi đồng hồ";
-        // // else if (alert1 === "3") alertText = "Lỗi (loại 2)";
-        // if (alertBox) alertBox.innerHTML = `<strong>${alertText}</strong>`;
-
 
         const alertBox = document.getElementById("alertText");
         let alertText = "Không có cảnh báo";
@@ -835,15 +852,15 @@
         return "00 giờ : 00 phút";  // Nếu không phải định dạng hợp lệ, trả về "00 giờ : 00 phút"
       }
 
-      // Hàm thêm số 0 nếu số nhỏ hơn 10
-      function padZero(num) {
-        return num < 10 ? `0${num}` : num;
-      }
+        // Hàm thêm số 0 nếu số nhỏ hơn 10
+          function padZero(num) {
+            return num < 10 ? `0${num}` : num;
+          }
 
-////////////////
-// ✅ Bây giờ mới dùng được vì biến đã tồn tại
+          ////////////////
+          // ✅ Bây giờ mới dùng được vì biến đã tồn tại
 
-///////////////
+          ///////////////
 
 
 
@@ -879,7 +896,6 @@
         ];
         const selectedIdx = parseInt(fileSelect.value);
         const configValue = configValues[selectedIdx];
-        updateInputsFromConfig(configValue);
       }
     });
     let isUpdatingFromConfig = false;
@@ -972,6 +988,8 @@
       eraWidget.triggerAction(loadAction.action, null, { value: "__load__" });
       sentMsg.innerText = `📥 Đã yêu cầu ESP32 gửi lại cấu hình File ${idx + 1}`;
       setTimeout(() => sentMsg.innerText = "", 2000);
+      const configValue = [configValueFile1, configValueFile2, configValueFile3, configValueFile4, configValueFile5][parseInt(fileSelect.value)];
+      updateInputsFromConfig(configValue);
     });
 
     const allInputs = document.querySelectorAll('input[type="number"]');
